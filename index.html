@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Maria Boston | Programmer & Analyst</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Orbitron', 'sans-serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            base: {
+              900: '#070818',
+              800: '#0A0C24',
+              700: '#0F1233',
+            },
+            neon: {
+              pink: '#ff2d95',
+              blue: '#19d3ff',
+              purple: '#8a5cff',
+              green: '#1df2a4',
+              amber: '#ffc857',
+            }
+          },
+          boxShadow: {
+            neon: '0 0 30px rgba(25, 211, 255, .35), inset 0 0 10px rgba(25, 211, 255, .25)',
+            neonPink: '0 0 30px rgba(255, 45, 149, .35), inset 0 0 10px rgba(255, 45, 149, .25)',
+            card: '0 10px 30px rgba(0,0,0,.35)',
+          },
+          backdropBlur: {
+            xs: '2px',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-8px)' },
+            },
+            pulseGlow: {
+              '0%, 100%': { boxShadow: '0 0 0 rgba(25,211,255,.0)' },
+              '50%': { boxShadow: '0 0 35px rgba(25,211,255,.35)' },
+            },
+            gradientMove: {
+              '0%': { backgroundPosition: '0% 50%' },
+              '50%': { backgroundPosition: '100% 50%' },
+              '100%': { backgroundPosition: '0% 50%' },
+            }
+          },
+          animation: {
+            float: 'float 5s ease-in-out infinite',
+            pulseGlow: 'pulseGlow 3s ease-in-out infinite',
+            gradientMove: 'gradientMove 18s ease infinite',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Chart.js for visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* Futuristic neon gradient background */
+    .bg-nebula {
+      background: radial-gradient(1200px 800px at 20% 10%, rgba(138,92,255,.20), transparent 60%),
+                  radial-gradient(1000px 700px at 80% 0%, rgba(25,211,255,.20), transparent 60%),
+                  radial-gradient(900px 900px at 50% 100%, rgba(255,45,149,.15), transparent 60%),
+                  linear-gradient(135deg, #070818, #0A0C24 40%, #0F1233 100%);
+      background-size: 200% 200%;
+    }
+    /* Subtle scanline + noise overlay */
+    .scanlines:before {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.03) 0px,
+        rgba(255,255,255,0.03) 1px,
+        transparent 2px,
+        transparent 3px
+      );
+      pointer-events: none;
+      mix-blend-mode: overlay;
+    }
+    .noise:after {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity="0.035"/></svg>');
+      background-size: 250px 250px;
+      pointer-events: none;
+    }
+    /* Glow border helper */
+    .glow-border {
+      position: relative;
+      border: 1px solid rgba(25, 211, 255, 0.25);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.0));
+    }
+    .glow-border:after {
+      content: '';
+      position: absolute; inset: -1px;
+      border-radius: inherit;
+      background: radial-gradient(120px 120px at var(--mx, 50%) var(--my, 50%), rgba(25, 211, 255, .18), transparent 60%);
+      pointer-events: none;
+      transition: opacity .25s ease;
+      opacity: 0;
+    }
+    .glow-border:hover:after { opacity: 1; }
+
+    /* Command palette overlay */
+    .overlay-backdrop {
+      backdrop-filter: blur(6px);
+      background: rgba(7,8,24, .55);
+    }
+
+    /* Accent variable to tint elements dynamically */
+    :root { --accent: #19d3ff; }
+    .accent-shadow { box-shadow: 0 8px 30px color-mix(in oklab, var(--accent) 35%, transparent); }
+    .accent-ring { box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 65%, transparent) inset; }
+    .accent-text { color: var(--accent); }
+    .accent-bg { background-color: color-mix(in oklab, var(--accent) 80%, #0a0c24); }
+    .accent-border { border-color: color-mix(in oklab, var(--accent) 65%, transparent); }
+    .accent-glow { text-shadow: 0 0 18px color-mix(in oklab, var(--accent) 75%, transparent); }
+
+    /* Prevent content overlap with edges on small screens */
+    .safe-px { padding-left: max(env(safe-area-inset-left), 1rem); padding-right: max(env(safe-area-inset-right), 1rem); }
+  </style>
+</head>
+
+<body class="bg-nebula text-white font-sans relative min-h-screen overflow-x-hidden">
+  <!-- Futuristic Page Loader -->
+  <div id="pageLoader" class="fixed inset-0 z-[60] flex items-center justify-center bg-base-900/70 backdrop-blur-md transition-opacity duration-500">
+    <div class="relative">
+      <div class="w-28 h-28 rounded-full border-2 border-white/10"></div>
+      <div class="absolute inset-0 rounded-full border-t-2 border-[var(--accent)] animate-spin" style="animation-duration: 1.2s;"></div>
+      <div class="absolute inset-2 rounded-full border-b-2 border-neon-pink animate-spin" style="animation-duration: 1.8s;"></div>
+      <div class="absolute inset-4 rounded-full border-r-2" style="border-color: color-mix(in oklab, var(--accent) 80%, transparent); animation: spin 2.4s linear infinite;"></div>
+      <div class="absolute -bottom-10 left-1/2 -translate-x-1/2 font-display tracking-widest text-white/80">Loading</div>
+    </div>
+  </div>
+  <!-- Animated particles canvas -->
+  <canvas id="stars" class="fixed inset-0 opacity-50 pointer-events-none"></canvas>
+
+  <!-- Skin: command bar / theme / color -->
+  <header class="safe-px fixed top-0 left-0 right-0 z-40">
+    <div class="max-w-7xl mx-auto py-4">
+      <div class="glow-border rounded-2xl px-4 md:px-6 py-3 flex items-center justify-between backdrop-blur-md">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg accent-bg accent-ring"></div>
+          <span class="font-display tracking-widest text-lg md:text-xl accent-text">MARIA</span>
+        </div>
+        <nav class="hidden md:flex items-center gap-2">
+          <a href="#about" class="px-3 py-2 rounded-lg hover:accent-ring">About</a>
+          <a href="#skills" class="px-3 py-2 rounded-lg hover:accent-ring">Skills</a>
+          <a href="#projects" class="px-3 py-2 rounded-lg hover:accent-ring">Projects</a>
+          <a href="#analytics" class="px-3 py-2 rounded-lg hover:accent-ring">Analytics Lab</a>
+          <a href="#blog" class="px-3 py-2 rounded-lg hover:accent-ring">Writing</a>
+          <a href="#contact" class="px-3 py-2 rounded-lg hover:accent-ring">Contact</a>
+        </nav>
+        <div class="flex items-center gap-2">
+          <!-- Accent color chooser -->
+          <button id="paletteBtn" class="px-3 py-2 rounded-lg glow-border hover:accent-ring" title="Accent Color">
+            🎨
+          </button>
+          <!-- Theme toggle -->
+          <button id="themeBtn" class="px-3 py-2 rounded-lg glow-border hover:accent-ring" title="Theme">
+            🌓
+          </button>
+          <!-- Command palette -->
+          <button id="cmdBtn" class="px-3 py-2 rounded-lg accent-bg accent-shadow" title="Command (Ctrl+K)">
+            ⌘K
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="safe-px pt-28 md:pt-32">
+    <!-- HERO -->
+    <section class="max-w-7xl mx-auto relative">
+      <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+        <div>
+          <h1 class="font-display text-4xl md:text-6xl leading-tight">
+            <span class="block accent-text accent-glow">Programmer</span>
+            <span class="block">+ Analyst</span>
+          </h1>
+          <p class="mt-4 text-white/80 max-w-xl">
+            I build reliable systems, decode data into decisions, and design delightful tools. From backend logic to front‑end polish, from dashboards to ML prototypes—shipping value end to end.
+          </p>
+          <div class="mt-6 flex flex-wrap items-center gap-3">
+            <button id="viewProjects" class="rounded-xl px-5 py-3 accent-bg glow-border accent-shadow">Explore Projects</button>
+            <button id="downloadCV" class="rounded-xl px-5 py-3 glow-border hover:accent-ring">Download Resume</button>
+            <button id="copyEmail" class="rounded-xl px-5 py-3 glow-border hover:accent-ring">Copy Email</button>
+          </div>
+          <div class="mt-6 flex items-center gap-4 text-sm text-white/70">
+            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse"></span> Available for select projects</span>
+            <span>•</span>
+            <span>Remote-first</span>
+          </div>
+        </div>
+        <div class="relative">
+          <div class="rounded-2xl glow-border p-4 md:p-6 backdrop-blur-sm shadow-card">
+            <div class="rounded-xl p-4 md:p-6 bg-base-800/40 border border-white/5 relative overflow-hidden">
+              <!-- Animated "system card" -->
+              <div class="flex items-center justify-between">
+                <div class="font-display tracking-widest text-white/80">SYSTEM MONITOR</div>
+                <div class="flex gap-1">
+                  <span class="w-2 h-2 rounded-full bg-neon-pink/80"></span>
+                  <span class="w-2 h-2 rounded-full bg-neon-amber/80"></span>
+                  <span class="w-2 h-2 rounded-full bg-[var(--accent)]"></span>
+                </div>
+              </div>
+              <div class="grid grid-cols-3 gap-4 mt-4">
+                <div class="rounded-lg glow-border p-3 text-center">
+                  <div class="text-xs text-white/60">Builds</div>
+                  <div id="metricBuilds" class="text-2xl font-bold mt-1">128</div>
+                </div>
+                <div class="rounded-lg glow-border p-3 text-center">
+                  <div class="text-xs text-white/60">Latency</div>
+                  <div id="metricLatency" class="text-2xl font-bold mt-1">42ms</div>
+                </div>
+                <div class="rounded-lg glow-border p-3 text-center">
+                  <div class="text-xs text-white/60">Accuracy</div>
+                  <div id="metricAccuracy" class="text-2xl font-bold mt-1">98.4%</div>
+                </div>
+              </div>
+              <canvas id="miniSpark" class="mt-4 h-28 w-full"></canvas>
+            </div>
+          </div>
+          <!-- Floating badge -->
+          <div class="absolute -right-2 -top-3 md:-right-6 md:-top-6 rounded-xl px-4 py-2 bg-base-700/80 border border-white/10 backdrop-blur animate-float">
+            <span class="accent-text font-semibold">Neural-Ready</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="max-w-7xl mx-auto mt-16 md:mt-24">
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="md:col-span-2 rounded-2xl glow-border p-6 md:p-8 backdrop-blur-sm">
+          <h2 class="font-display text-2xl md:text-3xl mb-2">About</h2>
+          <p class="text-white/80 leading-relaxed">
+            Hi, I’m Maria Boston. I craft maintainable software and make data sing. I love building high‑impact features, automations, and analytics that unlock growth. My toolkit spans TypeScript, Python, SQL, cloud platforms, and a curiosity that never sleeps.
+          </p>
+          <div class="mt-5 flex flex-wrap gap-3">
+            <span class="text-xs px-3 py-1 rounded-full glow-border">TypeScript</span>
+            <span class="text-xs px-3 py-1 rounded-full glow-border">Python</span>
+            <span class="text-xs px-3 py-1 rounded-full glow-border">SQL</span>
+            <span class="text-xs px-3 py-1 rounded-full glow-border">DataViz</span>
+            <span class="text-xs px-3 py-1 rounded-full glow-border">ML</span>
+            <span class="text-xs px-3 py-1 rounded-full glow-border">DevOps</span>
+          </div>
+        </div>
+        <div class="rounded-2xl glow-border p-6 md:p-8 backdrop-blur-sm">
+          <h3 class="font-display text-xl mb-2">Highlights</h3>
+          <ul class="space-y-3 text-white/85">
+            <li class="flex gap-3">
+              <span>⚡</span><span>Shipped 20+ production services with 99.95% uptime</span>
+            </li>
+            <li class="flex gap-3">
+              <span>📊</span><span>Designed dashboards used by 200+ stakeholders</span>
+            </li>
+            <li class="flex gap-3">
+              <span>🧠</span><span>Prototyped forecasting models improving planning by 18%</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SKILLS -->
+    <section id="skills" class="max-w-7xl mx-auto mt-16 md:mt-24">
+      <div class="grid lg:grid-cols-2 gap-6">
+        <div class="rounded-2xl glow-border p-6 md:p-8 backdrop-blur-sm">
+          <div class="flex items-center justify-between">
+            <h2 class="font-display text-2xl md:text-3xl">Skills Radar</h2>
+            <div class="flex gap-2">
+              <button data-profile="dev" class="skillProfile px-3 py-2 rounded-lg glow-border hover:accent-ring">Dev</button>
+              <button data-profile="data" class="skillProfile px-3 py-2 rounded-lg glow-border hover:accent-ring">Data</button>
+              <button data-profile="full" class="skillProfile px-3 py-2 rounded-lg accent-bg">Full</button>
+            </div>
+          </div>
+          <canvas id="radar" class="mt-4 h-80 w-full"></canvas>
+        </div>
+        <div class="rounded-2xl glow-border p-6 md:p-8 backdrop-blur-sm">
+          <h3 class="font-display text-xl">Toolbox</h3>
+          <div class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div class="rounded-xl glow-border p-4">React</div>
+            <div class="rounded-xl glow-border p-4">Node.js</div>
+            <div class="rounded-xl glow-border p-4">Postgres</div>
+            <div class="rounded-xl glow-border p-4">Pandas</div>
+            <div class="rounded-xl glow-border p-4">Airflow</div>
+            <div class="rounded-xl glow-border p-4">Docker</div>
+          </div>
+          <div class="mt-6">
+            <h4 class="font-display text-lg mb-2">Snippet</h4>
+            <div class="rounded-xl glow-border p-4 bg-base-800/40">
+              <pre class="text-sm overflow-auto"><code id="snippet">const analyze = (rows, pick) =>
+  rows.reduce((acc, r) => (acc + Number(r[pick] ?? 0)), 0) / (rows.length || 1);</code></pre>
+              <div class="mt-3 flex gap-2">
+                <button id="copySnippet" class="px-3 py-2 rounded-lg accent-bg">Copy</button>
+                <button id="runSnippet" class="px-3 py-2 rounded-lg glow-border">Run Demo</button>
+                <span id="snippetOut" class="text-white/70"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section id="projects" class="max-w-7xl mx-auto mt-16 md:mt-24">
+      <div class="flex items-center justify-between">
+        <h2 class="font-display text-2xl md:text-3xl">Projects</h2>
+        <div class="flex flex-wrap gap-2">
+          <button data-filter="all" class="filterBtn px-3 py-2 rounded-lg accent-bg">All</button>
+          <button data-filter="web" class="filterBtn px-3 py-2 rounded-lg glow-border">Web</button>
+          <button data-filter="data" class="filterBtn px-3 py-2 rounded-lg glow-border">Data</button>
+          <button data-filter="ml" class="filterBtn px-3 py-2 rounded-lg glow-border">ML</button>
+          <button data-filter="tools" class="filterBtn px-3 py-2 rounded-lg glow-border">Tools</button>
+        </div>
+      </div>
+      <div id="projectGrid" class="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Project cards -->
+      </div>
+    </section>
+
+    <!-- ANALYTICS LAB -->
+    <section id="analytics" class="max-w-7xl mx-auto mt-16 md:mt-24">
+      <div class="rounded-2xl glow-border p-6 md:p-8 backdrop-blur-sm">
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div>
+            <h2 class="font-display text-2xl md:text-3xl">Analytics Lab</h2>
+            <p class="text-white/75">Paste CSV or JSON. We’ll summarize columns and plot a quick chart.</p>
+          </div>
+          <div class="flex gap-2">
+            <button id="sampleData" class="px-3 py-2 rounded-lg glow-border">Load Sample</button>
+            <button id="clearData" class="px-3 py-2 rounded-lg glow-border">Clear</button>
+          </div>
+        </div>
+        <div class="mt-4 grid lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 space-y-4">
+            <textarea id="dataInput" rows="8" class="w-full rounded-xl p-4 bg-base-800/60 border border-white/10 outline-none" placeholder='[{"team":"A","sales":120},{"team":"B","sales":150}] or team,sales
+A,120
+B,150'></textarea>
+            <div class="flex items-center gap-3">
+              <select id="columnSelect" class="rounded-lg px-3 py-2 bg-base-800/60 border border-white/10"></select>
+              <button id="analyzeBtn" class="px-4 py-2 rounded-lg accent-bg">Analyze</button>
+              <span id="statsOut" class="text-white/70"></span>
+            </div>
+            <canvas id="labChart" class="h-72 w-full"></canvas>
+          </div>
+          <div class="space-y-4">
+            <div class="rounded-xl glow-border p-4">
+              <h4 class="font-display mb-2">Preview</h4>
+              <div id="tableWrap" class="overflow-auto max-h-72"></div>
+            </div>
+            <div class="rounded-xl glow-border p-4">
+              <h4 class="font-display mb-2">Find</h4>
+              <div class="flex gap-2">
+                <input id="searchInput" class="flex-1 rounded-lg px-3 py-2 bg-base-800/60 border border-white/10" placeholder="Search rows..." />
+                <button id="searchBtn" class="px-3 py-2 rounded-lg glow-border">Go</button>
+              </div>
+              <div id="searchOut" class="text-white/70 mt-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WRITING -->
+    <section id="blog" class="max-w-7xl mx-auto mt-16 md:mt-24">
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="md:col-span-2 rounded-2xl glow-border p-6 md:p-8 backdrop-blur-sm">
+          <h2 class="font-display text-2xl md:text-3xl">Writing</h2>
+          <div id="blogList" class="mt-4 grid sm:grid-cols-2 gap-4"></div>
+        </div>
+        <div class="rounded-2xl glow-border p-6 md:p-8 backdrop-blur-sm">
+          <h3 class="font-display text-xl">Topics</h3>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <span class="text-xs px-3 py-1 rounded-full glow-border">Systems</span>
+            <span class="text-xs px-3 py-1 rounded-full glow-border">Analytics</span>
+            <span class="text-xs px-3 py-1 rounded-full glow-border">AI</span>
+            <span class="text-xs px-3 py-1 rounded-full glow-border">UX</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXPERIENCE -->
+    <section class="max-w-7xl mx-auto mt-16 md:mt-24">
+      <div class="rounded-2xl glow-border p-6 md:p-8 backdrop-blur-sm">
+        <h2 class="font-display text-2xl md:text-3xl">Experience</h2>
+        <div class="mt-6 relative">
+          <div class="absolute left-3 top-0 bottom-0 w-px bg-white/10"></div>
+          <div class="space-y-6">
+            <div class="relative pl-10">
+              <div class="absolute left-0 top-1.5 w-2.5 h-2.5 rounded-full bg-[var(--accent)]"></div>
+              <div class="flex items-center justify-between">
+                <h3 class="font-semibold">Senior Engineer • TechFlow</h3>
+                <span class="text-white/60 text-sm">2022 — Present</span>
+              </div>
+              <p class="text-white/75">Scaled event-driven services and built revenue insights dashboards.</p>
+            </div>
+            <div class="relative pl-10">
+              <div class="absolute left-0 top-1.5 w-2.5 h-2.5 rounded-full bg-[var(--accent)]"></div>
+              <div class="flex items-center justify-between">
+                <h3 class="font-semibold">Data Analyst • BrightOps</h3>
+                <span class="text-white/60 text-sm">2020 — 2022</span>
+              </div>
+              <p class="text-white/75">Automated ETL, delivered predictive models, and self-serve BI.</p>
+            </div>
+            <div class="relative pl-10">
+              <div class="absolute left-0 top-1.5 w-2.5 h-2.5 rounded-full bg-[var(--accent)]"></div>
+              <div class="flex items-center justify-between">
+                <h3 class="font-semibold">Developer • Freelance</h3>
+                <span class="text-white/60 text-sm">2017 — 2020</span>
+              </div>
+              <p class="text-white/75">Full‑stack projects from landing pages to inventory systems.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="max-w-7xl mx-auto mt-16 md:mt-24 mb-16">
+      <div class="rounded-2xl glow-border p-6 md:p-8 backdrop-blur-sm">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h2 class="font-display text-2xl md:text-3xl">Contact</h2>
+            <p class="text-white/75">Say hi for collaborations or opportunities.</p>
+          </div>
+          <div class="flex gap-2">
+            <a href="mailto:hello@novalabs.dev" class="px-4 py-2 rounded-lg accent-bg">Email Me</a>
+            <button id="copyHandle" class="px-4 py-2 rounded-lg glow-border">Copy Handle</button>
+          </div>
+        </div>
+
+        <!-- Demo notice per limitations -->
+        <div class="mt-4 text-xs text-white/60">
+          Note: Contact actions open your email app or copy details. No server is used here (demo-safe).
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="safe-px">
+    <div class="max-w-7xl mx-auto mb-10">
+      <div class="rounded-2xl glow-border p-4 text-center text-white/60">
+        © <span id="year"></span> Maria Boston — Built with care. Press Ctrl+K to jump anywhere.
+      </div>
+    </div>
+  </footer>
+
+  <!-- COMMAND PALETTE -->
+  <div id="palette" class="hidden fixed inset-0 z-50">
+    <div class="absolute inset-0 overlay-backdrop"></div>
+    <div class="relative max-w-xl mx-auto mt-32 rounded-2xl glow-border p-3 bg-base-800/80 backdrop-blur">
+      <input id="cmdInput" class="w-full px-4 py-3 rounded-xl bg-base-900/60 border border-white/10 outline-none" placeholder="Type a command or section..." />
+      <ul id="cmdList" class="mt-2 max-h-64 overflow-auto">
+        <!-- commands -->
+      </ul>
+    </div>
+  </div>
+
+  <!-- PROJECT MODAL -->
+  <div id="projectModal" class="hidden fixed inset-0 z-50">
+    <div class="absolute inset-0 overlay-backdrop"></div>
+    <div class="relative max-w-2xl mx-auto mt-20 rounded-2xl glow-border p-0 overflow-hidden bg-base-800/80 backdrop-blur">
+      <div class="p-6 md:p-8">
+        <div class="flex items-start justify-between">
+          <div>
+            <h3 id="modalTitle" class="font-display text-2xl"></h3>
+            <p id="modalTags" class="text-white/60 mt-1"></p>
+          </div>
+          <button id="modalClose" class="px-3 py-2 rounded-lg glow-border">Close</button>
+        </div>
+        <p id="modalDesc" class="text-white/80 mt-4"></p>
+        <div class="mt-6 grid sm:grid-cols-2 gap-3">
+          <button id="modalDemo" class="px-4 py-2 rounded-lg accent-bg">Open Demo</button>
+          <button id="modalCode" class="px-4 py-2 rounded-lg glow-border">View Code</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Helpers
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+    const setAccent = (hex) => { document.documentElement.style.setProperty('--accent', hex); localStorage.setItem('accent', hex); highlightPalette(hex); };
+    const savedAccent = localStorage.getItem('accent'); if (savedAccent) setAccent(savedAccent);
+
+    // Accent picker small menu
+    const accentChoices = ['#19d3ff','#ff2d95','#8a5cff','#1df2a4','#ffc857'];
+    const paletteBtn = $('#paletteBtn');
+    let paletteMenu;
+    paletteBtn.addEventListener('click', () => {
+      if (paletteMenu) { paletteMenu.remove(); paletteMenu = null; return; }
+      paletteMenu = document.createElement('div');
+      paletteMenu.className = 'absolute mt-2 right-4 z-50 rounded-xl glow-border p-3 bg-base-800/90 backdrop-blur flex gap-2';
+      accentChoices.forEach(c => {
+        const b = document.createElement('button');
+        b.className = 'w-6 h-6 rounded-full';
+        b.style.background = c;
+        b.title = c;
+        b.addEventListener('click', () => { setAccent(c); paletteMenu.remove(); paletteMenu = null; });
+        paletteMenu.appendChild(b);
+      });
+      document.body.appendChild(paletteMenu);
+      const rect = paletteBtn.getBoundingClientRect();
+      paletteMenu.style.position = 'fixed';
+      paletteMenu.style.top = (rect.bottom + 8) + 'px';
+      paletteMenu.style.left = (rect.right - paletteMenu.offsetWidth) + 'px';
+    });
+    const highlightPalette = (hex) => {};
+
+    // Theme toggle (dark neon / low-glow)
+    const themeBtn = $('#themeBtn');
+    const themeState = () => localStorage.getItem('theme') || 'neon';
+    const applyTheme = (t) => {
+      document.body.style.opacity = '1';
+      if (t === 'low') {
+        document.body.classList.add('brightness-95');
+        document.body.style.filter = 'saturate(0.95)';
+      } else {
+        document.body.classList.remove('brightness-95');
+        document.body.style.filter = '';
+      }
+      localStorage.setItem('theme', t);
+    };
+    applyTheme(themeState());
+    themeBtn.addEventListener('click', () => {
+      applyTheme(themeState() === 'neon' ? 'low' : 'neon');
+    });
+
+    // Year
+    $('#year').textContent = new Date().getFullYear();
+
+    // Floating metrics + sparkline
+    const metricBuilds = $('#metricBuilds');
+    const metricLatency = $('#metricLatency');
+    const metricAccuracy = $('#metricAccuracy');
+    let tick = 0;
+    const spark = $('#miniSpark').getContext('2d');
+    const sparkData = Array.from({length: 40}, (_,i)=> 50 + Math.sin(i/3)*20 + Math.random()*10);
+    const drawSpark = () => {
+      const cvs = $('#miniSpark');
+      const w = cvs.width = cvs.clientWidth * devicePixelRatio;
+      const h = cvs.height = cvs.clientHeight * devicePixelRatio;
+      spark.clearRect(0,0,w,h);
+      spark.beginPath();
+      spark.lineWidth = 3;
+      spark.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#19d3ff';
+      const step = w / (sparkData.length-1);
+      sparkData.forEach((v,i) => {
+        const x = i*step, y = h - (v/100)*h;
+        i? spark.lineTo(x,y) : spark.moveTo(x,y);
+      });
+      spark.stroke();
+    };
+    const updateMetrics = () => {
+      tick++;
+      metricBuilds.textContent = (128 + Math.floor(Math.sin(tick/6)*4)).toString();
+      metricLatency.textContent = (38 + Math.floor(Math.abs(Math.sin(tick/4))*12)) + 'ms';
+      metricAccuracy.textContent = (98 + Math.sin(tick/20)*1).toFixed(1) + '%';
+      sparkData.push(50 + Math.sin(tick/3)*20 + Math.random()*12); sparkData.shift(); drawSpark();
+    };
+    setInterval(updateMetrics, 800);
+    addEventListener('resize', drawSpark); drawSpark();
+
+    // Binary Rain background
+    const starC = $('#stars'), sctx = starC.getContext('2d');
+    let drops = [];
+    let fontSize = 64; // much bigger digits
+    let speed = 0.22; // slower drift
+
+    const resizeBinary = () => {
+      const dpr = window.devicePixelRatio || 1;
+      starC.width = innerWidth * dpr;
+      starC.height = innerHeight * dpr;
+      starC.style.width = innerWidth + 'px';
+      starC.style.height = innerHeight + 'px';
+      sctx.setTransform(1,0,0,1,0,0);
+      sctx.scale(dpr, dpr);
+      const colGap = 16; // extra spacing for larger digits
+      const columns = Math.floor(innerWidth / (fontSize + colGap));
+      drops = Array.from({ length: columns }, () => Math.random() * innerHeight / fontSize);
+      sctx.font = fontSize + 'px monospace';
+    };
+
+    const drawBinary = () => {
+      // Slightly stronger fade for clean trails at larger size
+      sctx.fillStyle = 'rgba(7,8,24,0.16)';
+      sctx.fillRect(0, 0, innerWidth, innerHeight);
+
+      const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#1df2a4';
+      sctx.fillStyle = accent;
+      sctx.globalAlpha = 0.92;
+
+      const colGap = 12;
+      drops.forEach((y, i) => {
+        const x = i * (fontSize + colGap) + 4;
+        const ch = Math.random() > 0.5 ? '1' : '0';
+        sctx.fillText(ch, x, y * (fontSize + 10));
+        if (y * fontSize > innerHeight && Math.random() > 0.988) drops[i] = 0;
+        drops[i] += speed; // gentle descent
+      });
+
+      sctx.globalAlpha = 1;
+      requestAnimationFrame(drawBinary);
+    };
+
+    addEventListener('resize', resizeBinary);
+    resizeBinary();
+    drawBinary();
+
+    // Projects
+    const projects = [
+      { id:'p1', title:'StreamPulse', tags:['web','data'], desc:'Real-time analytics dashboard with WebSocket ingestion and windowed aggregations.', demo:'#', code:'#' },
+      { id:'p2', title:'QueryCraft', tags:['tools','data'], desc:'SQL assistant for query building, linting, and visual explain.', demo:'#', code:'#' },
+      { id:'p3', title:'VisionTune', tags:['ml','web'], desc:'Tiny ML pipeline to classify thumbnails; includes A/B evaluation.', demo:'#', code:'#' },
+      { id:'p4', title:'OpsKit', tags:['tools'], desc:'CLI to scaffold services with best-practice configs and health checks.', demo:'#', code:'#' },
+      { id:'p5', title:'InsightHub', tags:['data'], desc:'Self-serve metrics with semantic layer and governed dimensions.', demo:'#', code:'#' },
+      { id:'p6', title:'SynthUI', tags:['web'], desc:'Design system with accessibility and motion primitives.', demo:'#', code:'#' },
+    ];
+    const grid = $('#projectGrid');
+    const renderProjects = (filter='all') => {
+      const list = filter==='all' ? projects : projects.filter(p => p.tags.includes(filter));
+      grid.innerHTML = '';
+      list.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'rounded-2xl glow-border p-5 backdrop-blur-sm hover:accent-ring cursor-pointer';
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <h3 class="font-display text-xl">${p.title}</h3>
+            <span class="text-xs text-white/60">${p.tags.join(' • ')}</span>
+          </div>
+          <p class="text-white/80 mt-2">${p.desc}</p>
+          <div class="mt-3 flex gap-2">
+            <button class="px-3 py-2 rounded-lg accent-bg open-project" data-id="${p.id}">Details</button>
+            <button class="px-3 py-2 rounded-lg glow-border open-demo" data-id="${p.id}">Quick Demo</button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    };
+    renderProjects();
+    $$('.filterBtn').forEach(b => b.addEventListener('click', () => {
+      $$('.filterBtn').forEach(x => x.classList.remove('accent-bg'));
+      b.classList.add('accent-bg');
+      renderProjects(b.dataset.filter);
+    }));
+
+    // Project modal
+    const modal = $('#projectModal');
+    const openModal = (p) => {
+      $('#modalTitle').textContent = p.title;
+      $('#modalTags').textContent = p.tags.join(' • ');
+      $('#modalDesc').textContent = p.desc;
+      $('#modalDemo').onclick = () => window.alert('Demo link: ' + p.demo);
+      $('#modalCode').onclick = () => window.alert('Code link: ' + p.code);
+      modal.classList.remove('hidden');
+    };
+    $('#modalClose').addEventListener('click', ()=> modal.classList.add('hidden'));
+    addEventListener('click', (e) => {
+      const btn = e.target.closest('.open-project'); if (btn) { e.stopPropagation(); openModal(projects.find(p=>p.id===btn.dataset.id)); }
+      const demo = e.target.closest('.open-demo'); if (demo) { const p = projects.find(p=>p.id===demo.dataset.id); window.alert('Launching demo: '+p.title); }
+    });
+    $('#viewProjects').addEventListener('click', () => document.querySelector('#projects').scrollIntoView({behavior:'smooth'}));
+
+    // Resume download (opens print dialog for PDF)
+    $('#downloadCV').addEventListener('click', () => {
+      const w = window.open('', '_blank', 'width=900,height=1200');
+      const style = `
+        <style>
+          body { font-family: Inter, system-ui, sans-serif; color: #111; padding: 32px; }
+          h1 { font-family: Orbitron, sans-serif; letter-spacing: .08em; }
+          .tag { display:inline-block; padding: 4px 10px; margin: 2px; border: 1px solid #ddd; border-radius: 8px; }
+          .sec { margin-top: 18px; }
+        </style>`;
+      w.document.write(`
+        <html><head><title>Maria Boston - Resume</title>${style}</head><body>
+          <h1>Maria Boston — Programmer & Analyst</h1>
+          <p>email: hello@novalabs.dev · remote-first</p>
+          <div class="sec"><strong>Summary:</strong> Full-stack engineer and data analyst building reliable systems and clear insights.</div>
+          <div class="sec"><strong>Skills:</strong>
+            <div class="tag">TypeScript</div><div class="tag">Python</div><div class="tag">SQL</div><div class="tag">React</div><div class="tag">Pandas</div><div class="tag">Docker</div>
+          </div>
+          <div class="sec"><strong>Experience:</strong>
+            <ul>
+              <li>Senior Engineer — TechFlow (2022–Now)</li>
+              <li>Data Analyst — BrightOps (2020–2022)</li>
+              <li>Developer — Freelance (2017–2020)</li>
+            </ul>
+          </div>
+        </body></html>`);
+      w.document.close();
+      w.focus();
+      w.print();
+    });
+
+    // Copy helpers
+    $('#copyEmail').addEventListener('click', async () => {
+      await navigator.clipboard.writeText('hello@novalabs.dev');
+      const old = $('#copyEmail').textContent; $('#copyEmail').textContent = 'Copied!';
+      setTimeout(()=> $('#copyEmail').textContent = old, 1200);
+    });
+    $('#copyHandle').addEventListener('click', async () => {
+      await navigator.clipboard.writeText('@nova.codes');
+      const old = $('#copyHandle').textContent; $('#copyHandle').textContent = 'Copied!';
+      setTimeout(()=> $('#copyHandle').textContent = old, 1200);
+    });
+
+    // Command palette
+    const palette = $('#palette');
+    const cmdList = $('#cmdList');
+    const commands = [
+      { label:'Go: About', anchor:'#about' },
+      { label:'Go: Skills', anchor:'#skills' },
+      { label:'Go: Projects', anchor:'#projects' },
+      { label:'Go: Analytics Lab', anchor:'#analytics' },
+      { label:'Go: Writing', anchor:'#blog' },
+      { label:'Go: Contact', anchor:'#contact' },
+      { label:'Toggle Theme', action:()=> themeBtn.click() },
+    ];
+    const openPalette = () => {
+      cmdList.innerHTML = '';
+      commands.forEach((c,i) => {
+        const li = document.createElement('li');
+        li.className = 'rounded-lg glow-border p-3 mt-2 hover:accent-ring cursor-pointer';
+        li.textContent = c.label;
+        li.addEventListener('click', () => {
+          if (c.anchor) document.querySelector(c.anchor).scrollIntoView({behavior:'smooth'});
+          if (c.action) c.action();
+          closePalette();
+        });
+        cmdList.appendChild(li);
+      });
+      $('#cmdInput').value = '';
+      palette.classList.remove('hidden');
+      setTimeout(()=> $('#cmdInput').focus(), 50);
+    };
+    const closePalette = () => palette.classList.add('hidden');
+    $('#cmdBtn').addEventListener('click', openPalette);
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openPalette(); }
+      if (e.key === 'Escape') closePalette();
+    });
+    $('#cmdInput').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      $$('#cmdList li').forEach(li => {
+        li.style.display = li.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+    palette.addEventListener('click', (e)=> { if (e.target === palette.firstElementChild) closePalette(); });
+
+    // Skills Radar
+    const radarCtx = $('#radar');
+    let radarChart;
+    const radarProfiles = {
+      dev: { labels:['Frontend','Backend','APIs','Infra','Testing','Perf'], data:[80,85,90,70,80,75] },
+      data:{ labels:['SQL','ETL','Stats','Viz','ML','Ops'], data:[85,80,75,85,70,65] },
+      full:{ labels:['Frontend','Backend','SQL','DataViz','ML','Ops'], data:[80,85,85,80,70,75] },
+    };
+    const renderRadar = (key='full') => {
+      const cfg = radarProfiles[key];
+      if (radarChart) radarChart.destroy();
+      radarChart = new Chart(radarCtx, {
+        type: 'radar',
+        data: { labels: cfg.labels, datasets: [{ label:'Proficiency', data: cfg.data, borderColor: getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(), backgroundColor: (getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#19d3ff') + '33', pointBackgroundColor:'#fff' }]},
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            r: {
+              angleLines: { color:'rgba(255,255,255,.12)' },
+              grid: { color:'rgba(255,255,255,.12)' },
+              pointLabels: { color: 'rgba(255,255,255,.85)' },
+              suggestedMin: 0, suggestedMax: 100, ticks: { display:false }
+            }
+          }
+        }
+      });
+    };
+    renderRadar();
+    $$('.skillProfile').forEach(b => b.addEventListener('click', () => {
+      $$('.skillProfile').forEach(x => x.classList.remove('accent-bg'));
+      b.classList.add('accent-bg');
+      renderRadar(b.dataset.profile);
+    }));
+
+    // Snippet actions
+    $('#copySnippet').addEventListener('click', async () => {
+      await navigator.clipboard.writeText($('#snippet').innerText);
+      const old = $('#copySnippet').textContent; $('#copySnippet').textContent = 'Copied!';
+      setTimeout(()=> $('#copySnippet').textContent = old, 1200);
+    });
+    $('#runSnippet').addEventListener('click', () => {
+      const rows = [{v:10},{v:20},{v:30}];
+      const avg = rows.reduce((a,r)=>a+r.v,0)/rows.length;
+      $('#snippetOut').textContent = 'Avg(v) = ' + avg;
+    });
+
+    // Blog (sample posts)
+    const posts = [
+      { title:'Measuring What Matters in Product Analytics', tag:'Analytics', time:'6 min', link:'#' },
+      { title:'Scaling Event Pipelines without the Headache', tag:'Systems', time:'7 min', link:'#' },
+      { title:'UX for Engineers: Motion & Feedback', tag:'UX', time:'5 min', link:'#' },
+      { title:'Small Models, Big Wins', tag:'AI', time:'5 min', link:'#' },
+    ];
+    const blogList = $('#blogList');
+    posts.forEach(p => {
+      const el = document.createElement('a');
+      el.href = p.link;
+      el.className = 'rounded-xl glow-border p-4 hover:accent-ring';
+      el.innerHTML = `<div class="text-sm text-white/60">${p.tag} • ${p.time}</div><div class="mt-1 font-semibold">${p.title}</div>`;
+      blogList.appendChild(el);
+    });
+
+    // Analytics Lab
+    const tableWrap = $('#tableWrap');
+    const columnSelect = $('#columnSelect');
+    let parsedRows = [];
+    let labChart;
+    const parseData = (txt) => {
+      txt = txt.trim();
+      if (!txt) return [];
+      try {
+        if (txt.startsWith('[') || txt.startsWith('{')) {
+          const obj = JSON.parse(txt);
+          return Array.isArray(obj) ? obj : [obj];
+        }
+      } catch {}
+      // CSV parse (simple)
+      const lines = txt.split(/\r?\n/).filter(Boolean);
+      const headers = lines[0].split(',').map(h=>h.trim());
+      return lines.slice(1).map(line => {
+        const cols = line.split(','); const o = {};
+        headers.forEach((h,i)=> o[h] = cols[i] !== undefined ? cols[i].trim() : '');
+        return o;
+      });
+    };
+    const renderTable = (rows) => {
+      if (!rows.length) { tableWrap.innerHTML = '<div class="text-white/60 text-sm">No data.</div>'; return; }
+      const headers = Object.keys(rows[0]);
+      const table = document.createElement('table');
+      table.className = 'w-full text-sm';
+      table.innerHTML = `
+        <thead><tr>${headers.map(h=>`<th class="text-left p-2 border-b border-white/10">${h}</th>`).join('')}</tr></thead>
+        <tbody>${rows.slice(0,50).map(r=>`<tr>${headers.map(h=>`<td class="p-2 border-b border-white/5 text-white/80">${String(r[h] ?? '')}</td>`).join('')}</tr>`).join('')}</tbody>
+      `;
+      tableWrap.innerHTML = ''; tableWrap.appendChild(table);
+    };
+    const refreshColumns = (rows) => {
+      columnSelect.innerHTML = '';
+      if (!rows.length) return;
+      Object.keys(rows[0]).forEach(k => {
+        const opt = document.createElement('option'); opt.value = k; opt.textContent = k; columnSelect.appendChild(opt);
+      });
+    };
+    const summarize = (rows, col) => {
+      const nums = rows.map(r => Number(r[col])).filter(n => !isNaN(n));
+      if (!nums.length) return { mean: null, median: null, min:null, max:null, count:0 };
+      nums.sort((a,b)=>a-b);
+      const mean = nums.reduce((a,b)=>a+b,0)/nums.length;
+      const mid = Math.floor(nums.length/2);
+      const median = nums.length % 2 ? nums[mid] : (nums[mid-1]+nums[mid])/2;
+      return { mean, median, min:nums[0], max:nums[nums.length-1], count:nums.length };
+    };
+    const drawLabChart = (rows, col) => {
+      if (labChart) labChart.destroy();
+      const groups = {};
+      rows.forEach(r => { const k = String(r[col]); groups[k] = (groups[k]||0)+1; });
+      const labels = Object.keys(groups).slice(0,12);
+      const data = labels.map(k => groups[k]);
+      labChart = new Chart($('#labChart'), {
+        type: 'bar',
+        data: { labels, datasets: [{ label:'Count', data, backgroundColor: (getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#19d3ff') + '55' }]},
+        options: {
+          plugins: { legend: { display: false } },
+          scales: { x: { ticks: { color:'rgba(255,255,255,.8)' } }, y: { ticks: { color:'rgba(255,255,255,.8)' } } }
+        }
+      });
+    };
+    const analyzeNow = () => {
+      const col = columnSelect.value;
+      if (!col) return;
+      const s = summarize(parsedRows, col);
+      $('#statsOut').textContent = s.count ? `mean ${s.mean.toFixed(2)} • median ${s.median} • min ${s.min} • max ${s.max}` : 'Pick a numeric column';
+      drawLabChart(parsedRows, col);
+    };
+    $('#analyzeBtn').addEventListener('click', analyzeNow);
+    $('#sampleData').addEventListener('click', () => {
+      const sample = `team,region,sales
+A,NA,120
+B,EU,150
+A,APAC,180
+C,NA,90
+B,APAC,160`;
+      $('#dataInput').value = sample;
+      parsedRows = parseData(sample);
+      renderTable(parsedRows);
+      refreshColumns(parsedRows);
+      analyzeNow();
+    });
+    $('#clearData').addEventListener('click', () => {
+      $('#dataInput').value = '';
+      parsedRows = [];
+      renderTable(parsedRows);
+      refreshColumns(parsedRows);
+      $('#statsOut').textContent = '';
+      if (labChart) labChart.destroy();
+    });
+    // Parse on blur
+    $('#dataInput').addEventListener('blur', (e) => {
+      parsedRows = parseData(e.target.value);
+      renderTable(parsedRows);
+      refreshColumns(parsedRows);
+    });
+    // Search
+    $('#searchBtn').addEventListener('click', () => {
+      const q = $('#searchInput').value.toLowerCase().trim();
+      if (!q || !parsedRows.length) { $('#searchOut').textContent = 'Enter a term.'; return; }
+      const hits = parsedRows.filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(q))).slice(0,10);
+      $('#searchOut').textContent = `Found ${hits.length} rows (showing up to 10).`;
+    });
+
+    // Accessibility: focus management for modal
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (!modal.classList.contains('hidden')) modal.classList.add('hidden');
+      }
+    });
+
+    // Move glow gradient towards cursor on hoverable elements
+    document.body.addEventListener('pointermove', (e) => {
+      const t = e.target.closest('.glow-border'); if (!t) return;
+      const r = t.getBoundingClientRect();
+      t.style.setProperty('--mx', `${(e.clientX - r.left)/r.width*100}%`);
+      t.style.setProperty('--my', `${(e.clientY - r.top)/r.height*100}%`);
+    });
+
+    // Hide loader once everything paints
+    window.addEventListener('load', () => {
+      const loader = document.getElementById('pageLoader');
+      if (!loader) return;
+      loader.style.opacity = '0';
+      setTimeout(() => loader.remove(), 500);
+    });
+  </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97fe5d25c27bbc3f',t:'MTc1ODAwNDczOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
